@@ -1,0 +1,4 @@
+# failing when no appropriate target systems found
+- name: Failing
+  ansible.builtin.fail:
+    msg: Could not find appropriate tasks for a given target

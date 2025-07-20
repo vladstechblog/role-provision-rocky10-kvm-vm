@@ -1,0 +1,14 @@
+---
+# defaults file for test_role
+os_type: Linux
+os_variant: rocky-unknown
+extra_drive: false
+extra_drive_size: 20
+authorized_ssh_key: 
+default_user: admin
+default_user_can_sudo_without_password: false
+primary_drive_size_gb: 80
+ram_size_mb: 2048
+number_of_vcpus: 8
+graphics: vnc
+vdisk_base_directory: /var/lib/libvirt/images

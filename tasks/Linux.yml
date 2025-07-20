@@ -1,0 +1,62 @@
+---
+# Generic Linux tasks go here
+- name: Check variable definitions
+  ansible.builtin.assert:
+    that: "{{ var_name }} is defined"
+    msg: "{{ var_name }} is undefined"
+  loop:
+    - ipv4_addr
+    - ipv4_mask
+    - ipv4_gate
+    - iso_path
+    - vm_name
+    - os_type
+    - os_variant
+    - extra_drive
+    - graphics
+    - number_of_vcpus
+    - vdisk_base_directory
+    - ram_size_mb
+    - libvirt_network
+    - default_user
+    - default_user_can_sudo_without_password
+    - primary_drive_size_gb
+    - secondary_drive_size_gb
+    - kickstart_output_directory
+  loop_control:
+    loop_var: var_name
+
+- name: Create kickstart output directory if does not exits
+  ansible.builtin.file:
+    path: "{{ kickstart_output_directory }}"
+    state: directory
+
+- name: Render kickstart template
+  ansible.builtin.template:
+    src: vm.ks.j2
+    dest: "{{ kickstart_output_directory }}/{{ vm_name }}.ks"
+    mode: 0640
+
+- name: Provision the VM
+  command:
+    cmd: >
+      /usr/bin/virt-install -n {{ vm_name }}
+      --network network={{ libvirt_network }}
+      --memory {{ ram_size_mb }}
+      --vcpus {{ number_of_vcpus }}
+      --os-type {{ os_type }}
+      --os-variant {{ os_variant }}
+      --graphics {{ graphics }}
+      --disk {{ vdisk_base_directory }}/{{ vm_name }}.qcow2,size={{ primary_drive_size_gb }}
+      {% if extra_drive %}
+      --disk {{ vdisk_base_directory }}/{{ vm_name }}-extra.qcow2,size={{ secondary_drive_size_gb }}
+      {% endif %}
+      --location {{ iso_path }}
+      --initrd-inject {{ kickstart_output_directory }}/{{ vm_name }}.ks
+      -x "inst.ks=file:/{{ vm_name }}.ks"
+      --noreboot
+      --wait
+      --noautoconsole
+      --destroy-on-exit
+
+
